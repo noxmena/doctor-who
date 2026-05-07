@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", serif;
+  
+  --color-tardis-blue: #020617; /* obsidian slate */
+  --color-tardis-dark: #000000;
+  --color-tardis-glow: #22d3ee; /* cyan-400 */
+  --color-tardis-accent: #f97316; /* orange-500 (resume accent) */
+  --color-cyan-vortex: #0891b2;
+}
+
+@layer base {
+  body {
+    @apply bg-[#020617] text-slate-200 antialiased overflow-x-hidden;
+    background-image: 
+      radial-gradient(circle at 100% 0%, rgba(34, 211, 238, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 0% 100%, rgba(8, 145, 178, 0.03) 0%, transparent 50%);
+    min-height: 100vh;
+  }
+}
+
+.glass {
+  @apply bg-black/40 backdrop-blur-3xl border border-white/5;
+}
+
+.glow-cyan {
+  box-shadow: 0 0 30px rgba(34, 211, 238, 0.1);
+}
+
+.vortex-blur {
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.1) 0%, transparent 70%);
+  filter: blur(80px);
+}
+
+.gallifreyan-pattern {
+  background-image: radial-gradient(circle at center, transparent 30%, rgba(0, 240, 255, 0.05) 31%, rgba(0, 240, 255, 0.05) 32%, transparent 33%);
+  background-size: 100px 100px;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 60s linear infinite;
+}
+
+@keyframes scan {
+  from { top: -10%; }
+  to { top: 110%; }
+}
+
+.animate-scan {
+  animation: scan 8s linear infinite;
+}
