@@ -117,7 +117,9 @@ export const Player: React.FC<PlayerProps> = ({ episode, initialTime = 0, onBack
     } else {
       // English Version (VidAPI) - Doctor Who IMDB: tt0436992
       // Using resumeAt and subtitle matching the user requests
-      return `https://vaplayer.ru/embed/tv/tt0436992/${episode.season}/${episode.episodeNumber}?ds_lang=${subtitleLang}&primaryColor=%2300edd2&resumeAt=${initialTime}`;
+      const titleParam = encodeURIComponent(episode.title);
+      const posterParam = encodeURIComponent(episode.thumbnailUrl);
+      return `https://vaplayer.ru/embed/tv/tt0436992/${episode.season}/${episode.episodeNumber}?ds_lang=${subtitleLang}&primaryColor=%2300edd2&resumeAt=${initialTime}&title=${titleParam}&poster=${posterParam}`;
     }
   };
 
@@ -247,13 +249,13 @@ export const Player: React.FC<PlayerProps> = ({ episode, initialTime = 0, onBack
       </div>
 
       {/* Main Video Viewport & Sidebar Elements */}
-      <div className="flex-1 flex overflow-hidden relative w-full z-10">
+      <div className={`flex-1 overflow-hidden relative w-full z-10 ${dataSource === 'english' ? 'flex flex-col no-scrollbar overflow-y-auto' : 'flex'}`}>
         
         {/* Video Area */}
-        <div className="flex-1 relative flex flex-col pt-8 px-8 pb-32 overflow-y-auto no-scrollbar">
-          <div className="w-full max-w-[1400px] mx-auto flex flex-col gap-6">
+        <div className={`relative flex flex-col ${dataSource === 'english' ? 'w-full flex-none' : 'flex-1 pt-8 px-8 pb-32 overflow-y-auto no-scrollbar'}`}>
+          <div className={`w-full mx-auto flex flex-col ${dataSource === 'english' ? 'max-w-none' : 'max-w-[1400px] gap-6'}`}>
             
-            <div className="w-full aspect-video relative rounded-2xl overflow-hidden glass border border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.8),0_0_50px_rgba(34,211,238,0.05)] text-center flex flex-col justify-center bg-[#020617] flex-none">
+            <div className={`w-full relative shadow-[0_0_100px_rgba(0,0,0,0.8),0_0_50px_rgba(34,211,238,0.05)] text-center flex flex-col justify-center bg-[#020617] flex-none ${dataSource === 'english' ? 'h-[75vh] border-b border-white/10' : 'aspect-video rounded-2xl overflow-hidden glass border border-white/5'}`}>
               
               {isOptimizing && !unsupportedArabic && (
             <div className="absolute inset-0 z-40 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center gap-6">
@@ -321,7 +323,7 @@ export const Player: React.FC<PlayerProps> = ({ episode, initialTime = 0, onBack
             </div>
 
             {/* Current Episode Info */}
-            <div className="w-full text-left p-6 glass rounded-2xl border border-white/5 flex flex-col sm:flex-row gap-6 relative overflow-hidden">
+            <div className={`w-full text-left relative overflow-hidden flex flex-col sm:flex-row gap-6 ${dataSource === 'english' ? 'px-8 py-8 mx-auto max-w-[1600px] w-full' : 'p-6 glass rounded-2xl border border-white/5'}`}>
                <div className="absolute top-0 right-0 p-8 opacity-5">
                  <Zap size={120} />
                </div>
@@ -356,22 +358,31 @@ export const Player: React.FC<PlayerProps> = ({ episode, initialTime = 0, onBack
           </div>
         </div>
 
-        {/* Recommended Sidebar */}
+        {/* Recommended Sidebar / Grid */}
         {recommendedEpisodes && recommendedEpisodes.length > 0 && (
-          <div className="w-[320px] lg:w-[400px] flex-none border-l border-white/5 bg-black/60 backdrop-blur-xl flex flex-col p-6 overflow-y-auto pb-32">
+          <div className={dataSource === 'english' 
+            ? "w-full max-w-[1600px] mx-auto px-8 pb-40 flex flex-col flex-none" 
+            : "w-[320px] lg:w-[400px] flex-none border-l border-white/5 bg-black/60 backdrop-blur-xl flex flex-col p-6 overflow-y-auto pb-32"}>
+             
              <h3 className="text-white font-black uppercase tracking-[0.2em] text-xs mb-6 flex items-center gap-2">
                <Play size={14} className="text-tardis-glow" /> 
                Up Next In Archive
              </h3>
              
-             <div className="flex flex-col gap-4">
+             <div className={dataSource === 'english' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6" : "flex flex-col gap-4"}>
                 {recommendedEpisodes.map((rec) => (
                    <button 
                      key={rec.id}
                      onClick={() => onSelectEpisode?.(rec)}
-                     className="group flex gap-3 lg:gap-4 items-start text-left hover:bg-white/5 p-2 -mx-2 rounded-xl transition-colors border border-transparent hover:border-white/10"
+                     className={dataSource === 'english'
+                       ? "group flex flex-col text-left hover:bg-white/5 p-3 rounded-xl transition-colors border border-transparent hover:border-white/10"
+                       : "group flex gap-3 lg:gap-4 items-start text-left hover:bg-white/5 p-2 -mx-2 rounded-xl transition-colors border border-transparent hover:border-white/10"
+                     }
                    >
-                     <div className="w-28 lg:w-36 aspect-video rounded-lg overflow-hidden relative flex-none">
+                     <div className={dataSource === 'english'
+                       ? "w-full aspect-video rounded-lg overflow-hidden relative flex-none mb-3"
+                       : "w-28 lg:w-36 aspect-video rounded-lg overflow-hidden relative flex-none"
+                     }>
                        <img src={rec.thumbnailUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                        <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
                        <div className="absolute bottom-1 right-1 bg-black/80 backdrop-blur text-[9px] font-mono px-1 rounded text-white border border-white/10">

@@ -204,18 +204,17 @@ export default function App() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredEpisodes.map((episode, index) => (
-                <motion.div
+                <div 
                   key={episode.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
+                  className="animate-fade-in"
+                  style={{ animationDelay: `${Math.min(index * 0.05, 1)}s`, opacity: 0 }}
                 >
                   <EpisodeCard 
                     episode={episode} 
                     onClick={setSelectedEpisode}
                     progress={watchStates[episode.id]?.timestamp ? 80 : 0}
                   />
-                </motion.div>
+                </div>
               ))}
             </div>
           </section>
