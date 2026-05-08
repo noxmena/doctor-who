@@ -56,6 +56,17 @@ export default function App() {
   const resumeEpisodeId = useMemo(() => storageService.getLastWatchedEpisodeId(), [watchStates]);
   const resumeEpisode = EPISODES.find(e => e.id === resumeEpisodeId);
 
+  const sortedAllEpisodes = useMemo(() => {
+    return [...EPISODES].sort((a, b) => {
+      if (a.season !== b.season) return a.season - b.season;
+      return a.episodeNumber - b.episodeNumber;
+    });
+  }, []);
+
+  const currentEpisodeIndex = selectedEpisode ? sortedAllEpisodes.findIndex(e => e.id === selectedEpisode.id) : -1;
+  const hasNext = currentEpisodeIndex >= 0 && currentEpisodeIndex < sortedAllEpisodes.length - 1;
+  const hasPrev = currentEpisodeIndex > 0;
+
   return (
     <div className="min-h-screen flex relative overflow-hidden font-sans">
       {/* Immersive Background Decorations */}
@@ -222,9 +233,12 @@ export default function App() {
       <AnimatePresence>
         {selectedEpisode && (
           <Player 
+            key={selectedEpisode.id}
             episode={selectedEpisode} 
             initialTime={watchStates[selectedEpisode.id]?.timestamp || 0}
             onBack={() => setSelectedEpisode(null)} 
+            onNext={hasNext ? () => setSelectedEpisode(sortedAllEpisodes[currentEpisodeIndex + 1]) : undefined}
+            onPrev={hasPrev ? () => setSelectedEpisode(sortedAllEpisodes[currentEpisodeIndex - 1]) : undefined}
           />
         )}
       </AnimatePresence>

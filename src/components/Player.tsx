@@ -12,9 +12,11 @@ interface PlayerProps {
   episode: Episode;
   initialTime?: number;
   onBack: () => void;
+  onNext?: () => void;
+  onPrev?: () => void;
 }
 
-export const Player: React.FC<PlayerProps> = ({ episode, initialTime = 0, onBack }) => {
+export const Player: React.FC<PlayerProps> = ({ episode, initialTime = 0, onBack, onNext, onPrev }) => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [playedSeconds, setPlayedSeconds] = useState(initialTime);
   const [selectedQuality, setSelectedQuality] = useState('360p'); // Default to lowest
@@ -323,9 +325,23 @@ export const Player: React.FC<PlayerProps> = ({ episode, initialTime = 0, onBack
                  <RefreshCw size={12} className={isPlaying ? "animate-spin text-tardis-glow" : ""} />
                  Tracking Chronos
                </span>
-               <span className="text-3xl font-mono font-black text-white italic drop-shadow-md">
-                 {formatTime(playedSeconds)}
-               </span>
+               <div className="flex items-center gap-4">
+                 <span className="text-3xl font-mono font-black text-white italic drop-shadow-md">
+                   {formatTime(playedSeconds)}
+                 </span>
+                 <div className="flex gap-2">
+                   {onPrev && (
+                     <button onClick={(e) => { e.stopPropagation(); onPrev(); }} className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center bg-white/5 hover:bg-tardis-glow/20 hover:border-tardis-glow/50 transition-all text-slate-400 hover:text-white">
+                       <SkipBack size={16} />
+                     </button>
+                   )}
+                   {onNext && (
+                     <button onClick={(e) => { e.stopPropagation(); onNext(); }} className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center bg-white/5 hover:bg-tardis-glow/20 hover:border-tardis-glow/50 transition-all text-slate-400 hover:text-white">
+                       <SkipForward size={16} />
+                     </button>
+                   )}
+                 </div>
+               </div>
             </div>
             
             <div className="flex gap-4">
