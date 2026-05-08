@@ -239,6 +239,8 @@ export default function App() {
             onBack={() => setSelectedEpisode(null)} 
             onNext={hasNext ? () => setSelectedEpisode(sortedAllEpisodes[currentEpisodeIndex + 1]) : undefined}
             onPrev={hasPrev ? () => setSelectedEpisode(sortedAllEpisodes[currentEpisodeIndex - 1]) : undefined}
+            recommendedEpisodes={sortedAllEpisodes.slice(currentEpisodeIndex + 1, currentEpisodeIndex + 6)}
+            onSelectEpisode={(ep) => setSelectedEpisode(ep)}
           />
         )}
       </AnimatePresence>

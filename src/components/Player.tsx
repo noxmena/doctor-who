@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   ArrowLeft, Play, Pause, Zap, Radio, RefreshCw, 
   Volume2, VolumeX, Maximize, SkipForward, SkipBack,
-  Clock, Activity, Shield, AlertTriangle, MessageSquare, Globe
+  Clock, Activity, Shield, AlertTriangle, MessageSquare, Globe, History
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Episode } from '../types';
@@ -14,9 +14,11 @@ interface PlayerProps {
   onBack: () => void;
   onNext?: () => void;
   onPrev?: () => void;
+  recommendedEpisodes?: Episode[];
+  onSelectEpisode?: (episode: Episode) => void;
 }
 
-export const Player: React.FC<PlayerProps> = ({ episode, initialTime = 0, onBack, onNext, onPrev }) => {
+export const Player: React.FC<PlayerProps> = ({ episode, initialTime = 0, onBack, onNext, onPrev, recommendedEpisodes, onSelectEpisode }) => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [playedSeconds, setPlayedSeconds] = useState(initialTime);
   const [selectedQuality, setSelectedQuality] = useState('360p'); // Default to lowest
@@ -132,7 +134,7 @@ export const Player: React.FC<PlayerProps> = ({ episode, initialTime = 0, onBack
       </div>
 
       {/* Header HUD */}
-      <div className="absolute top-0 left-0 w-full h-20 px-8 flex items-center justify-between z-50 bg-gradient-to-b from-black via-black/80 to-transparent border-b border-tardis-glow/10 backdrop-blur-md">
+      <div className="flex-none h-20 w-full px-8 flex items-center justify-between z-50 bg-gradient-to-b from-black via-black/80 to-transparent border-b border-tardis-glow/10 backdrop-blur-md relative">
         <button 
           onClick={onBack}
           className="flex items-center gap-3 text-slate-400 hover:text-tardis-glow transition-all group/back"
@@ -244,11 +246,16 @@ export const Player: React.FC<PlayerProps> = ({ episode, initialTime = 0, onBack
         </div>
       </div>
 
-      {/* Main Video Viewport */}
-      <div className="flex-1 relative bg-black flex items-center justify-center mt-20 p-8 pb-32">
-        <div className="w-full h-full max-w-[1600px] relative rounded-2xl overflow-hidden glass border border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.8),0_0_50px_rgba(34,211,238,0.05)] text-center flex flex-col justify-center bg-[#020617]">
-          
-          {isOptimizing && !unsupportedArabic && (
+      {/* Main Video Viewport & Sidebar Elements */}
+      <div className="flex-1 flex overflow-hidden relative w-full z-10">
+        
+        {/* Video Area */}
+        <div className="flex-1 relative flex flex-col pt-8 px-8 pb-32 overflow-y-auto no-scrollbar">
+          <div className="w-full max-w-[1400px] mx-auto flex flex-col gap-6">
+            
+            <div className="w-full aspect-video relative rounded-2xl overflow-hidden glass border border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.8),0_0_50px_rgba(34,211,238,0.05)] text-center flex flex-col justify-center bg-[#020617] flex-none">
+              
+              {isOptimizing && !unsupportedArabic && (
             <div className="absolute inset-0 z-40 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center gap-6">
                <div className="relative">
                   <div className="w-24 h-24 border-4 border-tardis-glow/10 rounded-full" />
@@ -311,7 +318,78 @@ export const Player: React.FC<PlayerProps> = ({ episode, initialTime = 0, onBack
               </motion.div>
             )}
           </AnimatePresence>
+            </div>
+
+            {/* Current Episode Info */}
+            <div className="w-full text-left p-6 glass rounded-2xl border border-white/5 flex flex-col sm:flex-row gap-6 relative overflow-hidden">
+               <div className="absolute top-0 right-0 p-8 opacity-5">
+                 <Zap size={120} />
+               </div>
+               <div className="flex-1 relative z-10">
+                 <h2 className="text-2xl font-black italic uppercase text-white mb-3">{episode.title}</h2>
+                 <p className="text-slate-400 text-sm leading-relaxed">{episode.description}</p>
+                 <div className="flex flex-wrap items-center justify-between gap-4 mt-6">
+                   <div className="flex items-center gap-4">
+                     <div className="px-3 py-1 bg-white/5 rounded-md border border-white/10 text-[10px] font-mono uppercase tracking-widest text-slate-400">
+                       S{episode.season} E{episode.episodeNumber < 10 ? '0': ''}{episode.episodeNumber}
+                     </div>
+                     <div className="px-3 py-1 bg-white/5 rounded-md border border-white/10 text-[10px] font-mono uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                       <Clock size={12} /> {episode.duration || '45m'}
+                     </div>
+                   </div>
+                   
+                   <div className="flex items-center gap-2">
+                     <button className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 text-xs font-bold uppercase tracking-widest text-white flex items-center gap-2 transition-colors">
+                       <Zap size={14} className="text-tardis-glow" /> Boost Signal
+                     </button>
+                     <button className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 text-xs font-bold uppercase tracking-widest text-white flex items-center gap-2 transition-colors">
+                       <History size={14} /> Add to Log
+                     </button>
+                     <button className="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 flex items-center justify-center text-white transition-colors">
+                       <ArrowLeft size={14} className="rotate-90" />
+                     </button>
+                   </div>
+                 </div>
+               </div>
+            </div>
+
+          </div>
         </div>
+
+        {/* Recommended Sidebar */}
+        {recommendedEpisodes && recommendedEpisodes.length > 0 && (
+          <div className="w-[320px] lg:w-[400px] flex-none border-l border-white/5 bg-black/60 backdrop-blur-xl flex flex-col p-6 overflow-y-auto pb-32">
+             <h3 className="text-white font-black uppercase tracking-[0.2em] text-xs mb-6 flex items-center gap-2">
+               <Play size={14} className="text-tardis-glow" /> 
+               Up Next In Archive
+             </h3>
+             
+             <div className="flex flex-col gap-4">
+                {recommendedEpisodes.map((rec) => (
+                   <button 
+                     key={rec.id}
+                     onClick={() => onSelectEpisode?.(rec)}
+                     className="group flex gap-3 lg:gap-4 items-start text-left hover:bg-white/5 p-2 -mx-2 rounded-xl transition-colors border border-transparent hover:border-white/10"
+                   >
+                     <div className="w-28 lg:w-36 aspect-video rounded-lg overflow-hidden relative flex-none">
+                       <img src={rec.thumbnailUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                       <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
+                       <div className="absolute bottom-1 right-1 bg-black/80 backdrop-blur text-[9px] font-mono px-1 rounded text-white border border-white/10">
+                         {rec.duration || '45m'}
+                       </div>
+                     </div>
+                     <div className="flex flex-col py-1">
+                       <h4 className="text-xs lg:text-sm font-bold text-white leading-tight group-hover:text-tardis-glow transition-colors line-clamp-2">{rec.title}</h4>
+                       <span className="text-[10px] text-slate-500 mt-2 font-mono uppercase tracking-wider">
+                         S{rec.season} E{rec.episodeNumber}
+                       </span>
+                     </div>
+                   </button>
+                ))}
+             </div>
+          </div>
+        )}
+
       </div>
 
       {/* Decorative TARDIS Controls HUD (Bottom Bar) */}
