@@ -25,5 +25,31 @@ export const storageService = {
     const states = storageService.getWatchStates();
     const sorted = Object.values(states).sort((a, b) => b.lastUpdated - a.lastUpdated);
     return sorted.length > 0 ? sorted[0].episodeId : null;
+  },
+
+  saveLastSeason: (season: number) => {
+    localStorage.setItem('tardis_last_season', season.toString());
+  },
+
+  getLastSeason: (): number | null => {
+    const s = localStorage.getItem('tardis_last_season');
+    return s ? parseInt(s, 10) : null;
+  },
+
+  saveLastTab: (tab: 'all' | 'recent') => {
+    localStorage.setItem('tardis_last_tab', tab);
+  },
+
+  getLastTab: (): 'all' | 'recent' | null => {
+    return localStorage.getItem('tardis_last_tab') as 'all' | 'recent' | null;
+  },
+
+  savePlayerActive: (active: boolean, episodeId: string | null) => {
+    localStorage.setItem('tardis_player_active', JSON.stringify({ active, episodeId }));
+  },
+
+  getPlayerActive: (): { active: boolean; episodeId: string | null } => {
+    const data = localStorage.getItem('tardis_player_active');
+    return data ? JSON.parse(data) : { active: false, episodeId: null };
   }
 };

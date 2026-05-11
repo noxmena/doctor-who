@@ -9,10 +9,20 @@ import { storageService } from './services/storageService';
 import { GallifreyanClock } from './components/GallifreyanClock';
 
 export default function App() {
-  const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
+  const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(() => {
+    const state = storageService.getPlayerActive();
+    if (state.active && state.episodeId) {
+      return EPISODES.find(e => e.id === state.episodeId) || null;
+    }
+    return null;
+  });
   const [watchStates, setWatchStates] = useState<Record<string, WatchState>>({});
-  const [selectedSeason, setSelectedSeason] = useState<number | null>(5);
-  const [activeTab, setActiveTab] = useState<'all' | 'recent'>('all');
+  const [selectedSeason, setSelectedSeason] = useState<number | null>(() => {
+    return storageService.getLastSeason() || 5;
+  });
+  const [activeTab, setActiveTab] = useState<'all' | 'recent'>(() => {
+    return storageService.getLastTab() || 'all';
+  });
   const [searchQuery, setSearchQuery] = useState('');
 
   const seasons = useMemo(() => {
@@ -22,6 +32,23 @@ export default function App() {
 
   useEffect(() => {
     setWatchStates(storageService.getWatchStates());
+    if (selectedEpisode) {
+      setSelectedSeason(selectedEpisode.season);
+    }
+  }, [selectedEpisode]);
+
+  useEffect(() => {
+    if (selectedSeason !== null) {
+      storageService.saveLastSeason(selectedSeason);
+    }
+  }, [selectedSeason]);
+
+  useEffect(() => {
+    storageService.saveLastTab(activeTab);
+  }, [activeTab]);
+
+  useEffect(() => {
+    storageService.savePlayerActive(!!selectedEpisode, selectedEpisode?.id || null);
   }, [selectedEpisode]);
 
   const filteredEpisodes = useMemo(() => {
@@ -212,7 +239,16 @@ export default function App() {
                   <EpisodeCard 
                     episode={episode} 
                     onClick={setSelectedEpisode}
-                    progress={watchStates[episode.id]?.timestamp ? 80 : 0}
+                    progress={(() => {
+                      const state = watchStates[episode.id];
+                      if (!state) return 0;
+                      let totalSeconds = 2700;
+                      if (episode.duration) {
+                        const minsMatch = episode.duration.match(/(\d+)m/);
+                        if (minsMatch) totalSeconds = parseInt(minsMatch[1], 10) * 60;
+                      }
+                      return Math.min((state.timestamp / totalSeconds) * 100, 100);
+                    })()}
                   />
                 </div>
               ))}
