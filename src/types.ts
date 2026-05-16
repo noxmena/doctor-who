@@ -19,3 +19,10 @@ export interface WatchState {
   timestamp: number; // in seconds
   lastUpdated: number;
 }
+
+export interface AppSettings {
+  autoPlayNext: boolean;
+  ambientAnimations: boolean;
+  dataSource: 'arabic' | 'english';
+  defaultQuality: string;
+}

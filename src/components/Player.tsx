@@ -5,7 +5,7 @@ import {
   Clock, Activity, Shield, AlertTriangle, MessageSquare, Globe, History
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Episode } from '../types';
+import { Episode, AppSettings } from '../types';
 import { storageService } from '../services/storageService';
 
 interface PlayerProps {
@@ -16,15 +16,16 @@ interface PlayerProps {
   onPrev?: () => void;
   recommendedEpisodes?: Episode[];
   onSelectEpisode?: (episode: Episode) => void;
+  settings: AppSettings;
 }
 
-export const Player: React.FC<PlayerProps> = ({ episode, initialTime = 0, onBack, onNext, onPrev, recommendedEpisodes, onSelectEpisode }) => {
+export const Player: React.FC<PlayerProps> = ({ episode, initialTime = 0, onBack, onNext, onPrev, recommendedEpisodes, onSelectEpisode, settings }) => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [playedSeconds, setPlayedSeconds] = useState(initialTime);
-  const [selectedQuality, setSelectedQuality] = useState('360p'); // Default to lowest
+  const [selectedQuality, setSelectedQuality] = useState(settings.defaultQuality); // Default to settings
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   
-  const [dataSource, setDataSource] = useState<'english' | 'arabic'>('english');
+  const [dataSource, setDataSource] = useState<'english' | 'arabic'>(settings.dataSource);
   const [subtitleLang, setSubtitleLang] = useState('en');
   const [showSubMenu, setShowSubMenu] = useState(false);
   const [showSourceMenu, setShowSourceMenu] = useState(false);
@@ -130,10 +131,12 @@ export const Player: React.FC<PlayerProps> = ({ episode, initialTime = 0, onBack
     <div className="fixed inset-0 z-50 bg-[#00050a] h-screen w-screen overflow-hidden flex flex-col font-sans group">
       
       {/* Cinematic Background Ambience */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(34,211,238,0.1)_0%,transparent_100%)]" />
-        <div className="absolute top-0 left-0 w-full h-[1px] bg-tardis-glow/40 animate-scan" style={{ animationDuration: '4s' }} />
-      </div>
+      {settings.ambientAnimations && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(34,211,238,0.1)_0%,transparent_100%)]" />
+          <div className="absolute top-0 left-0 w-full h-[1px] bg-tardis-glow/40 animate-scan" style={{ animationDuration: '4s' }} />
+        </div>
+      )}
 
       {/* Header HUD */}
       <div className="flex-none h-20 w-full px-8 flex items-center justify-between z-50 bg-gradient-to-b from-black via-black/80 to-transparent border-b border-tardis-glow/10 backdrop-blur-md relative">

@@ -1,8 +1,31 @@
-import { WatchState } from '../types';
+import { WatchState, AppSettings } from '../types';
 
 const STORAGE_KEY = 'tardis_watch_state';
+const SETTINGS_KEY = 'tardis_settings';
 
 export const storageService = {
+  getSettings: (): AppSettings => {
+    const data = localStorage.getItem(SETTINGS_KEY);
+    const defaults: AppSettings = {
+      autoPlayNext: true,
+      ambientAnimations: true,
+      dataSource: 'arabic',
+      defaultQuality: '720p'
+    };
+    return data ? { ...defaults, ...JSON.parse(data) } : defaults;
+  },
+
+  saveSettings: (settings: AppSettings) => {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  },
+
+  clearWatchHistory: () => {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem('tardis_last_season');
+    localStorage.removeItem('tardis_last_tab');
+    localStorage.removeItem('tardis_player_active');
+  },
+
   getWatchStates: (): Record<string, WatchState> => {
     const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : {};

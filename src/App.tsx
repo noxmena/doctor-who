@@ -7,6 +7,7 @@ import { EpisodeCard } from './components/EpisodeCard';
 import { Player } from './components/Player';
 import { storageService } from './services/storageService';
 import { GallifreyanClock } from './components/GallifreyanClock';
+import { SettingsModal } from './components/SettingsModal';
 
 export default function App() {
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(() => {
@@ -24,6 +25,12 @@ export default function App() {
     return storageService.getLastTab() || 'all';
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settings, setSettings] = useState(() => storageService.getSettings());
+
+  const handleSettingsChanged = () => {
+    setSettings(storageService.getSettings());
+  };
 
   const seasons = useMemo(() => {
     const s = Array.from(new Set(EPISODES.map(e => e.season))).sort((a, b) => a - b);
@@ -99,9 +106,11 @@ export default function App() {
       {/* Immersive Background Decorations */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute -top-24 -right-24 w-96 h-96 border-[40px] border-tardis-glow/5 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-5">
-           <GallifreyanClock />
-        </div>
+        {settings.ambientAnimations && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-5">
+             <GallifreyanClock />
+          </div>
+        )}
       </div>
 
       {/* Left Sidebar: Navigation */}
@@ -131,10 +140,17 @@ export default function App() {
           ))}
         </div>
 
-        <div className="mt-auto">
-          <div className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 hover:text-tardis-glow transition-colors cursor-pointer">
+        <div className="mt-auto z-40 relative">
+          <button 
+            onClick={() => setIsSettingsOpen(true)}
+            className={`w-10 h-10 rounded-full border flex items-center justify-center transition-colors cursor-pointer ${
+              isSettingsOpen 
+                ? 'bg-tardis-glow/20 border-tardis-glow text-tardis-glow shadow-[0_0_15px_rgba(34,211,238,0.4)]' 
+                : 'bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300'
+            }`}
+          >
             <Settings size={18} />
-          </div>
+          </button>
         </div>
       </aside>
 
@@ -276,9 +292,16 @@ export default function App() {
             onPrev={hasPrev ? () => setSelectedEpisode(sortedAllEpisodes[currentEpisodeIndex - 1]) : undefined}
             recommendedEpisodes={sortedAllEpisodes.slice(currentEpisodeIndex + 1, currentEpisodeIndex + 6)}
             onSelectEpisode={(ep) => setSelectedEpisode(ep)}
+            settings={settings}
           />
         )}
       </AnimatePresence>
+
+      <SettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
+        onSettingsChanged={handleSettingsChanged} 
+      />
     </div>
   );
 }
